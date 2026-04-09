@@ -17,24 +17,33 @@
       'div[tabindex="-1"][data-convid][data-time]',
       '[role="option"][data-convid]',
       '[data-convid][data-time]',
+      '[data-convid]',
+      'div[tabindex="-1"]',
     ],
     sender: [
       ".lvHighlightFromClass",
+      '[class*="lvHighlightFromClass"]',
       '[data-automationid="MessageListSender"]',
-      "[title]"
+      'span[title]',
+      'div[title]'
     ],
     subject: [
       ".lvHighlightSubjectClass",
+      '[class*="lvHighlightSubjectClass"]',
       '[data-automationid="MessageListSubject"]',
-      '[aria-label*="主题"]'
+      '[aria-label*="主题"]',
+      'a[href*="ReadMessageItem"]',
+      'a[href*="viewmodel=ReadMessageItem"]'
     ],
     snippet: [
       "._lvv_o1 .ms-font-weight-semilight",
       "._lvv_o1 .ms-font-color-neutralSecondary",
-      '[data-automationid="MessageListPreview"]'
+      '[data-automationid="MessageListPreview"]',
+      'span[title]'
     ],
     time: [
       "._lvv_t1",
+      '[class*="_lvv_t"]',
       '[data-automationid="MessageListReceivedDate"]',
       "time"
     ],
@@ -182,12 +191,83 @@
     return null;
   }
 
+  function uniqueNodes(nodes) {
+    return Array.from(new Set(nodes.filter(Boolean)));
+  }
+
+  function isLikelyRow(node) {
+    if (!node || !node.querySelector) return false;
+    if (node.id === ROOT_ID || node.closest(`#${ROOT_ID}`)) return false;
+    const text = normalizeText(node.textContent);
+    if (!text || text.length < 8) return false;
+    const rect = node.getBoundingClientRect();
+    return rect.width > 320 && rect.height > 24;
+  }
+
   function findRows() {
     for (const selector of SELECTORS.rows) {
-      const rows = Array.from(document.querySelectorAll(selector));
+      const rows = Array.from(document.querySelectorAll(selector)).filter(isLikelyRow);
       if (rows.length) return rows;
     }
+
+    const fallbackSources = uniqueNodes([
+      ...Array.from(document.querySelectorAll(".lvHighlightSubjectClass")),
+      ...Array.from(document.querySelectorAll(".lvHighlightFromClass")),
+      ...Array.from(document.querySelectorAll('a[href*="ReadMessageItem"]')),
+      ...Array.from(document.querySelectorAll('a[href*="viewmodel=ReadMessageItem"]')),
+    ]);
+
+    const fallbackRows = uniqueNodes(
+      fallbackSources.map((node) => node.closest('[data-convid]') || node.closest('div[tabindex="-1"]'))
+    ).filter(isLikelyRow);
+
+    if (fallbackRows.length) return fallbackRows;
     return [];
+  }
+
+  function collectTextParts(row) {
+    const parts = [];
+    const walker = document.createTreeWalker(row, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        if (!node.parentElement) return NodeFilter.FILTER_REJECT;
+        if (node.parentElement.closest(`#${ROOT_ID}`)) return NodeFilter.FILTER_REJECT;
+        if (["SCRIPT", "STYLE", "NOSCRIPT"].includes(node.parentElement.tagName)) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        const text = normalizeText(node.textContent);
+        return text ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      },
+    });
+
+    while (walker.nextNode()) {
+      const value = normalizeText(walker.currentNode.textContent);
+      if (!value) continue;
+      if (/^[!•·]$/.test(value)) continue;
+      if (parts[parts.length - 1] === value) continue;
+      parts.push(value);
+    }
+
+    return Array.from(new Set(parts));
+  }
+
+  function looksLikeTimeText(text) {
+    return /^(昨天|今天|明天|周[一二三四五六日天]|星期[一二三四五六日天]|\d{1,2}:\d{2}|上午|下午|AM|PM|Mon|Tue|Wed|Thu|Fri|Sat|Sun|Due\b|\d{4}[/-]\d{1,2}[/-]\d{1,2})/i.test(text);
+  }
+
+  function inferFieldValues(row) {
+    const parts = collectTextParts(row);
+    const nonTimeParts = parts.filter((part) => !looksLikeTimeText(part));
+    const timeText = parts.find((part) => looksLikeTimeText(part)) || "";
+    const sender = nonTimeParts[0] || "";
+    const subject = nonTimeParts.find((part) => part !== sender && part.length >= 4) || "";
+    const snippet = nonTimeParts.find((part) => part !== sender && part !== subject) || "";
+
+    return {
+      sender,
+      subject,
+      snippet,
+      timeText,
+    };
   }
 
   function parseTimeValue(row, timeText) {
@@ -210,10 +290,19 @@
     const subjectNode = queryFirst(row, SELECTORS.subject);
     const snippetNode = queryFirst(row, SELECTORS.snippet);
     const timeNode = queryFirst(row, SELECTORS.time);
-    const sender = normalizeText(senderNode ? senderNode.textContent || senderNode.getAttribute("title") : "");
-    const subject = normalizeText(subjectNode ? subjectNode.textContent || subjectNode.getAttribute("title") : "");
-    const snippet = normalizeText(snippetNode ? snippetNode.textContent : "");
-    const timeText = normalizeText(timeNode ? timeNode.textContent || timeNode.getAttribute("title") : "");
+    const inferred = inferFieldValues(row);
+    const sender = normalizeText(
+      senderNode ? senderNode.textContent || senderNode.getAttribute("title") : inferred.sender
+    );
+    const subject = normalizeText(
+      subjectNode ? subjectNode.textContent || subjectNode.getAttribute("title") : inferred.subject
+    );
+    const snippet = normalizeText(
+      snippetNode ? snippetNode.textContent || snippetNode.getAttribute("title") : inferred.snippet
+    );
+    const timeText = normalizeText(
+      timeNode ? timeNode.textContent || timeNode.getAttribute("title") : inferred.timeText
+    );
 
     if (!sender && !subject && !snippet) return null;
 
@@ -245,18 +334,6 @@
     return findRows()
       .map(buildEmail)
       .filter(Boolean)
-      .map((email) => {
-        const priority = getPriorityMeta(email);
-        const resolution = resolveCategory(email);
-        return {
-          ...email,
-          priority,
-          category: resolution.category,
-          categorySource: resolution.source,
-          matchedRule: resolution.rule,
-        };
-      })
-      .sort(sortEmails);
   }
 
   function daysUntil(dateString) {
