@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Mail Organizer for OWA",
+  "version": "0.1.0",
+  "description": "Organize visible OWA emails with custom archive categories, rules, priority sorting, and a small AI summary panel.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://mail.xjtlu.edu.cn/*",
+    "https://outlook.office.com/*",
+    "https://outlook.office365.com/*",
+    "https://api.deepseek.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://mail.xjtlu.edu.cn/owa/*",
+        "https://outlook.office.com/mail/*",
+        "https://outlook.office365.com/mail/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "Mail Organizer",
+    "default_popup": "popup.html"
+  }
+}
