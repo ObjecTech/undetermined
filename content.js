@@ -708,14 +708,6 @@
               ${selected ? `<button class="mail-organizer-link" data-action="generate-summary">生成摘要</button>` : ""}
             </div>
             ${selected ? renderSummary(selected) : `<p class="mail-organizer-empty">先选中一封邮件。</p>`}
-            <details style="margin-top:12px;">
-              <summary class="mail-organizer-note" style="cursor:pointer;">AI 配置</summary>
-              <div class="mail-organizer-grid" style="margin-top:10px;">
-                <input class="mail-organizer-input" data-action="set-base-url" value="${escapeHtml(state.storage.config.baseUrl)}" placeholder="API Base URL" />
-                <input class="mail-organizer-input" data-action="set-api-key" type="password" value="${escapeHtml(state.storage.config.apiKey)}" placeholder="API Key" />
-                <input class="mail-organizer-input" data-action="set-model" value="${escapeHtml(state.storage.config.model)}" placeholder="Model" />
-              </div>
-            </details>
           </section>
 
           <section class="mail-organizer-card">
@@ -997,21 +989,6 @@
 
     root.querySelector("[data-action='generate-summary']")?.addEventListener("click", () => {
       generateSummary();
-    });
-
-    root.querySelector("[data-action='set-base-url']")?.addEventListener("input", async (event) => {
-      state.storage.config.baseUrl = event.target.value;
-      await persistStorage();
-    });
-
-    root.querySelector("[data-action='set-api-key']")?.addEventListener("input", async (event) => {
-      state.storage.config.apiKey = event.target.value;
-      await persistStorage();
-    });
-
-    root.querySelector("[data-action='set-model']")?.addEventListener("input", async (event) => {
-      state.storage.config.model = event.target.value;
-      await persistStorage();
     });
   }
 

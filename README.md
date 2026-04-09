@@ -1,42 +1,42 @@
 # Mail Organizer for OWA
 
-这是一个 Chrome 扩展版本的邮件整理器，目标是直接在 OWA 网页邮箱里做三件事：
+This is a Chrome extension for organizing emails directly inside the OWA web interface. It is designed to do three things well:
 
-- 把当前页面可见邮件自动归档到不同类别
-- 根据 DDL、紧急词和手动优先级把重要邮件排到前面
-- 用一块小型 AI 面板辅助查看当前邮件摘要
+- Automatically archive visible emails into different categories
+- Move important emails to the top based on deadlines, urgent wording, and manual priority overrides
+- Provide a small AI summary panel as a secondary helper for the currently selected email
 
-## 当前能力
+## Current Features
 
-- 抓取当前 OWA 页面已经渲染出来的邮件列表
-- 支持自定义归档类别
-- 支持配置自动规则：
-  - 发件人包含某个关键词 -> 进入某个类别
-  - 标题包含某个关键词 -> 进入某个类别
-  - 摘要包含某个关键词 -> 进入某个类别
-- 支持手动覆盖单封邮件的：
-  - 归档类别
-  - 优先级
-  - DDL 日期
-- 自动排序逻辑：
-  - 手动高优先级
-  - 临近 DDL / 紧急词
-  - 本周跟进
-  - 普通邮件
-- 点击面板里的邮件可以定位原网页中的对应邮件
-- 小型 AI 摘要面板，默认走 DeepSeek OpenAI-compatible 接口
+- Extracts emails that are currently rendered on the OWA page
+- Supports custom archive categories
+- Supports automatic rules such as:
+  - sender contains a keyword -> move to a category
+  - subject contains a keyword -> move to a category
+  - snippet contains a keyword -> move to a category
+- Supports manual overrides per email:
+  - archive category
+  - priority
+  - due date
+- Built-in sorting logic:
+  - manually marked high priority
+  - near deadline / urgent wording
+  - follow-up this week
+  - normal emails
+- Lets you click a card in the panel to focus the original email row in OWA
+- Includes a compact AI summary panel using a DeepSeek OpenAI-compatible endpoint in the background
 
-## 安装方式
+## Installation
 
-1. 打开 Chrome
-2. 进入 `chrome://extensions/`
-3. 打开“开发者模式”
-4. 点击“加载已解压的扩展程序”
-5. 选择这个目录
+1. Open Chrome
+2. Go to `chrome://extensions/`
+3. Enable Developer Mode
+4. Click `Load unpacked`
+5. Select this directory
 
-## 注意事项
+## Notes
 
-- 这个扩展不会直接修改邮箱服务器里的真实文件夹和归档状态
-- 它整理的是“当前网页已加载出来”的邮件
-- 如果 OWA 页面 DOM 大改，抓取选择器可能需要更新
-- AI 摘要是辅助能力，不影响归档主流程
+- This extension does not directly change real folders or archive state on the mail server
+- It only organizes emails that are currently visible in the loaded OWA page
+- If the OWA DOM changes significantly, the selectors may need to be updated
+- AI summary is a helper feature only and does not affect the main archive workflow
