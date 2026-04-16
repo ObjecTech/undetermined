@@ -59,4 +59,4 @@ After code changes:
 
 ## License
 
-This project is released under the MIT License.
+This project is released under the MIT License. 
