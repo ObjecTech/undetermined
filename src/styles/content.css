@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :host {
+    --mail-organizer-bg: rgba(242, 243, 238, 0.94);
+    --mail-organizer-border: rgba(57, 64, 67, 0.14);
+    --mail-organizer-text: #111315;
+    --mail-organizer-muted: #65765e;
+    --mail-organizer-ring: rgba(136, 153, 127, 0.2);
+  }
+}
+
+:host,
+#mail-organizer-shadow-app {
+  all: initial;
+  font-family: "Avenir Next", "IBM Plex Sans", "Segoe UI", "PingFang SC", sans-serif;
+}
+
+.mail-organizer-root {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  color: var(--mail-organizer-text);
+  pointer-events: none;
+}
+
+.mail-organizer-root * {
+  box-sizing: border-box;
+}
+
+.mail-organizer-app {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.mail-organizer-shell {
+  position: fixed;
+  top: 72px;
+  right: 18px;
+  bottom: 20px;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.mail-organizer-interactive {
+  pointer-events: auto;
+}
+
+.mail-organizer-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(57, 64, 67, 0.25) transparent;
+}
+
+.mail-organizer-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.mail-organizer-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(57, 64, 67, 0.22);
+  border-radius: 999px;
+}
