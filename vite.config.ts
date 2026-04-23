@@ -8,6 +8,7 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
+        background: "src/background.ts",
         content: "src/content.tsx",
       },
       output: {
